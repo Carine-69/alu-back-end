@@ -21,13 +21,14 @@ def main():
         user_id = todo.get('userId')
         if user_id not in output:
             output[user_id] = []
-            user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
+            user_url = ('https://jsonplaceholder.typicode.com/users/{}'
+                        .format(user_id))
             user_name_response = requests.get(user_url)
             if user_name_response.status_code != 200:
                 print("Error: Unable to fetch user data from the API")
                 return
             user_name = user_name_response.json().get('username')
-        
+
         output[user_id].append({
             "username": user_name,
             "task": todo.get('title'),
