@@ -1,43 +1,38 @@
 #!/usr/bin/python3
-"""Script that gets user data (Todo list) from API
-and then exports the result to a JSON file."""
-
 import json
 import requests
 
+def fetch_users():
+    response = requests.get('https://jsonplaceholder.typicode.com/users')
+    users = response.json()
+    return users
+
+def fetch_tasks():
+    response = requests.get('https://jsonplaceholder.typicode.com/todos')
+    tasks = response.json()
+    return tasks
 
 def main():
-    """Main function"""
-    todo_url = 'https://jsonplaceholder.typicode.com/todos'
+    users = fetch_users()
+    tasks = fetch_tasks()
 
-    response = requests.get(todo_url)
-    if response.status_code != 200:
-        print("Error: Unable to fetch data from the API")
-        return
+    data = {}
+    
+    for user in users:
+        user_id = user['id']
+        username = user['username']
+        user_tasks = [
+            {
+                "username": username,
+                "task": task['title'],
+                "completed": task['completed']
+            }
+            for task in tasks if task['userId'] == user_id
+        ]
+        data[user_id] = user_tasks
+    
+    with open('todo_all_employees.json', 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
-    output = {}
-
-    for todo in response.json():
-        user_id = todo.get('userId')
-        if user_id not in output:
-            output[user_id] = []
-            user_url = ('https://jsonplaceholder.typicode.com/users/{}'
-                        .format(user_id))
-            user_name_response = requests.get(user_url)
-            if user_name_response.status_code != 200:
-                print("Error: Unable to fetch user data from the API")
-                return
-            user_name = user_name_response.json().get('username')
-
-        output[user_id].append({
-            "username": user_name,
-            "task": todo.get('title'),
-            "completed": todo.get('completed')
-        })
-
-    with open("todo_all_employees.json", 'w') as file:
-        json.dump(output, file)
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
